@@ -1,0 +1,74 @@
+spring:
+  application:
+    name: trade-store-processor
+
+  kafka:
+    bootstrap-servers: localhost:9092
+    consumer:
+      bootstrap-servers: localhost:9092
+      group-id: trade-processor-group
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serialization.JsonDeserializer
+      properties:
+        spring.jspn.trusted.packages: "*"
+      auto-offset-reset: earliest
+      enable-auto-commit: false
+      ack-mode: manual
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+    streams:
+      bootstrap-servers: localhost:9092
+      application-id: trade-processor-streams
+      state-dir: /tmp/kafka-streams
+      properties:
+        num.stream.threads: 4
+        default.key.serde: org.apache.kafka.common.serialization.Serde$StringSerde
+        default.value.serde: org.springframework.kafka.support.serializer.JsonSerde
+        rocksdb.config.setter: org.apache.kafka.streams.state.internals.RocksDBConfigSetter
+
+  datasource:
+    url: jdbc:postgresql://localhost:5432/tradestore
+    username: postgres
+    password: postgres
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: true
+
+  cassandra:
+    contract-points: localhost:9042
+    port: 9042
+    keyspace-name: tradestore
+    local-datacenter: datacenter1
+    schema-action: CREATE_IF_NOT_EXISTS
+
+server:
+  port: 8080
+
+logging:
+  level:
+    root: INFO
+    com.tradestore: DEBUG
+    org.springframework.kafka: INFO
+    org.apache.kafka: WARN
+
+app:
+  kafka:
+    consumer-groups:
+      trade-expiration: trade-expiration-group
+      trades-processor: trades-processor-group
+    topics:
+      ticks: ticks
+      trades: trades
+      tradeExpired: trade-expired
+      tradesDlq: trades-dlq
+      processingRejects: processing-rejects
+      tradeStateUpdates: trade-state-updates
+
