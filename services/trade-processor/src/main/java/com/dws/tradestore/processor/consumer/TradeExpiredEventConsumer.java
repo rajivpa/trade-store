@@ -1,7 +1,7 @@
 package com.dws.tradestore.processor.consumer;
 
 import com.dws.tradestore.processor.event.outbound.TradeExpiredEvent;
-import com.dws.tradestore.processor.service.TradeExpirationService;
+import com.dws.tradestore.processor.service.TradeExpiredEventProcessingService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.kafka.annotation.KafkaListener;
@@ -13,7 +13,7 @@ import org.springframework.stereotype.Service;
 public class TradeExpiredEventConsumer {
 
     @Autowired
-    private TradeExpirationService tradeExpirationService;
+    private TradeExpiredEventProcessingService tradeExpiredEventProcessingService;
 
     /**
      * This method receives trade expired events (which are sent after marking trade expired in sql store)
@@ -30,7 +30,7 @@ public class TradeExpiredEventConsumer {
                 return;
             }
 
-            tradeExpirationService.processExpiredEventForAuditAndStateStore(tradeExpiredEvent);
+            tradeExpiredEventProcessingService.processExpiredEventForAuditAndStateStore(tradeExpiredEvent);
 
             //Acknowledge only after successful processing
             ack.acknowledge();

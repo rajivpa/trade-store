@@ -1,16 +1,10 @@
 package com.dws.tradestore.processor.service;
 
-import com.dws.tradestore.processor.domain.enums.TradeStatus;
-import com.dws.tradestore.processor.domain.model.TradeState;
-import com.dws.tradestore.processor.event.inbound.TickEvent;
 import com.dws.tradestore.processor.event.outbound.TradeExpiredEvent;
 import com.dws.tradestore.processor.mapper.TradeMapper;
 import com.dws.tradestore.processor.messaging.publisher.TradeExpiryPublisher;
-import com.dws.tradestore.processor.persistence.entity.TradeAuditEntity;
 import com.dws.tradestore.processor.persistence.entity.TradeEntity;
-import com.dws.tradestore.processor.persistence.repository.TradeAuditRepository;
 import com.dws.tradestore.processor.persistence.repository.TradeEntityRepository;
-import jnr.constants.platform.Local;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -20,7 +14,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -32,17 +25,12 @@ public class TradeExpirationService {
     private TradeEntityRepository tradeEntityRepository;
 
     @Autowired
-    private TradeWriteService tradeWriteService;
-
-    @Autowired
     private TradeMapper tradeMapper;
 
     @Autowired
     private TradeExpiryPublisher tradeExpiryPublisher;
 
     private static final int PAGE_SIZE = 100;
-    @Autowired
-    private TradeStateStoreService tradeStateStoreService;
 
     /**
      * Expires matured trades for a given as-of date. This is triggered via Tick events coming through Kafka
@@ -84,20 +72,6 @@ public class TradeExpirationService {
         } catch(Exception e){
             log.error("Error during trade expiration process for date: {}",asOfDate, e);
             throw new RuntimeException("Error during trade expiration", e);
-        }
-    }
-
-    /**
-     * Triggered from expiration events (sent after updatin SQL store) listener, on reciept
-     * of expiration event we should update the Audit store and State store.
-      * @param tradeExpiredEvent
-     */
-    public void processExpiredEventForAuditAndStateStore(TradeExpiredEvent tradeExpiredEvent){
-        try {
-           tradeWriteService.expireTradeInNoSqlAndStateStore(tradeExpiredEvent);
-        } catch (Exception e){
-            log.error("Error during expiring trade in No SQL store/ State store for tradeId: {}",tradeExpiredEvent.getTradeId(), e);
-            throw new RuntimeException("Error during saving of expired trade event", e);
         }
     }
 

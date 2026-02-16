@@ -1,7 +1,7 @@
 package com.dws.tradestore.processor.consumer;
 
 import com.dws.tradestore.processor.event.outbound.TradeExpiredEvent;
-import com.dws.tradestore.processor.service.TradeExpirationService;
+import com.dws.tradestore.processor.service.TradeExpiredEventProcessingService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -17,7 +17,7 @@ import static org.mockito.Mockito.verify;
 class TradeExpiredEventConsumerTest {
 
     @Mock
-    private TradeExpirationService tradeExpirationService;
+    private TradeExpiredEventProcessingService tradeExpiredEventProcessingService;
 
     @Mock
     private Acknowledgment acknowledgment;
@@ -31,7 +31,7 @@ class TradeExpiredEventConsumerTest {
 
         consumer.onTradeExpired(event, acknowledgment);
 
-        verify(tradeExpirationService).processExpiredEventForAuditAndStateStore(event);
+        verify(tradeExpiredEventProcessingService).processExpiredEventForAuditAndStateStore(event);
         verify(acknowledgment).acknowledge();
     }
 
@@ -39,14 +39,14 @@ class TradeExpiredEventConsumerTest {
     void onTradeExpired_negative_nullEvent() {
         consumer.onTradeExpired(null, acknowledgment);
 
-        verify(tradeExpirationService, never()).processExpiredEventForAuditAndStateStore(org.mockito.ArgumentMatchers.any());
+        verify(tradeExpiredEventProcessingService, never()).processExpiredEventForAuditAndStateStore(org.mockito.ArgumentMatchers.any());
         verify(acknowledgment).acknowledge();
     }
 
     @Test
     void onTradeExpired_negative_serviceFailure_ackNotCalled() {
         TradeExpiredEvent event = TradeExpiredEvent.builder().tradeId("T1").version(1).build();
-        doThrow(new RuntimeException("failed")).when(tradeExpirationService)
+        doThrow(new RuntimeException("failed")).when(tradeExpiredEventProcessingService)
                 .processExpiredEventForAuditAndStateStore(event);
 
         consumer.onTradeExpired(event, acknowledgment);

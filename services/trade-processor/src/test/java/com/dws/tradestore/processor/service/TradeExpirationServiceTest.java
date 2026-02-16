@@ -1,6 +1,5 @@
 package com.dws.tradestore.processor.service;
 
-import com.dws.tradestore.processor.event.outbound.TradeExpiredEvent;
 import com.dws.tradestore.processor.mapper.TradeMapper;
 import com.dws.tradestore.processor.messaging.publisher.TradeExpiryPublisher;
 import com.dws.tradestore.processor.persistence.entity.TradeEntity;
@@ -31,16 +30,10 @@ class TradeExpirationServiceTest {
     private TradeEntityRepository tradeEntityRepository;
 
     @Mock
-    private TradeWriteService tradeWriteService;
-
-    @Mock
     private TradeMapper tradeMapper;
 
     @Mock
     private TradeExpiryPublisher tradeExpiryPublisher;
-
-    @Mock
-    private TradeStateStoreService tradeStateStoreService;
 
     @InjectMocks
     private TradeExpirationService tradeExpirationService;
@@ -75,22 +68,4 @@ class TradeExpirationServiceTest {
         verify(tradeExpiryPublisher, never()).publishTradeExpiredEvent(any());
     }
 
-    @Test
-    void processExpiredEventForAuditAndStateStore_happyPath() {
-        TradeExpiredEvent event = TradeExpiredEvent.builder().tradeId("T1").version(1).build();
-
-        assertDoesNotThrow(() -> tradeExpirationService.processExpiredEventForAuditAndStateStore(event));
-
-        verify(tradeWriteService).expireTradeInNoSqlAndStateStore(event);
-    }
-
-    @Test
-    void processExpiredEventForAuditAndStateStore_negative_downstreamFailure() {
-        TradeExpiredEvent event = TradeExpiredEvent.builder().tradeId("T1").version(1).build();
-        org.mockito.Mockito.doThrow(new RuntimeException("write failed"))
-                .when(tradeWriteService).expireTradeInNoSqlAndStateStore(event);
-
-        assertThrows(RuntimeException.class,
-                () -> tradeExpirationService.processExpiredEventForAuditAndStateStore(event));
-    }
 }
