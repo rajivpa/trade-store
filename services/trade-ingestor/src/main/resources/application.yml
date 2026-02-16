@@ -1,0 +1,31 @@
+spring:
+  application:
+    name: trade-ingestion-service
+  kafka:
+    bootstrap-servers: localhost:9092
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      acks: all
+      retries: 3
+      properties:
+        enable:
+          idempotence: true
+
+kafka:
+  topics:
+    trades: trades-received
+    ingestion-rejects: ingestion-rejects
+    dlq: trade-ingestor-dlq
+  producer:
+    timeout-ms: 5000
+    retry-enabled: true
+    max-retries: 3
+    retry-backoff-base-ms: 1000
+
+trade:
+  ingestion:
+    api:
+      base-path: /api/v1/trades
+    validation:
+      maturity-date-format: yyyy-MM-dd
