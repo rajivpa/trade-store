@@ -5,7 +5,7 @@ import com.dws.tradestore.processor.domain.model.TradeState;
 import com.dws.tradestore.processor.domain.model.ValidationResult;
 import com.dws.tradestore.processor.event.inbound.TradeReceivedEvent;
 import com.dws.tradestore.processor.mapper.TradeMapper;
-import com.dws.tradestore.processor.messaging.publisher.DLQPublisher;
+import com.dws.tradestore.processor.messaging.publisher.DlqPublisher;
 import com.dws.tradestore.processor.messaging.publisher.TradeRejectedEventPublisher;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -18,6 +18,7 @@ import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -38,7 +39,7 @@ class TradeProcessingServiceTest {
     private TradeRejectedEventPublisher rejectedEventPublisher;
 
     @Mock
-    private DLQPublisher dlqPublisher;
+    private DlqPublisher dlqPublisher;
 
     @Mock
     private TradeMapper tradeMapper;
@@ -59,7 +60,7 @@ class TradeProcessingServiceTest {
 
         verify(tradeWriteService).acceptTrade(trade);
         verify(rejectedEventPublisher, never()).publishRejectedEvent(any(), any(), any());
-        verify(dlqPublisher, never()).publishToDeadLetterQueue(any());
+        verify(dlqPublisher, never()).publishToDeadLetterQueue(any(), any(Throwable.class));
     }
 
     @Test
@@ -79,7 +80,7 @@ class TradeProcessingServiceTest {
 
         verify(rejectedEventPublisher).publishRejectedEvent(any(), any(), any());
         verify(tradeWriteService, never()).acceptTrade(any());
-        verify(dlqPublisher, never()).publishToDeadLetterQueue(any());
+        verify(dlqPublisher, never()).publishToDeadLetterQueue(any(), any(Throwable.class));
     }
 
     @Test
@@ -89,7 +90,7 @@ class TradeProcessingServiceTest {
 
         assertThrows(RuntimeException.class, () -> tradeProcessingService.processTradeEvent(event));
 
-        verify(dlqPublisher).publishToDeadLetterQueue(event);
+        verify(dlqPublisher).publishToDeadLetterQueue(eq(event), any(Throwable.class));
     }
 
     private TradeReceivedEvent sampleEvent() {
@@ -115,4 +116,3 @@ class TradeProcessingServiceTest {
                 .build();
     }
 }
-

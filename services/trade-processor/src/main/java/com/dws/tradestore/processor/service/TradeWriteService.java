@@ -38,6 +38,9 @@ public class TradeWriteService {
     public void acceptTrade(Trade trade) {
 
         log.info("Writing Trade with tradeId={}, version={}, to state store & persistent storages", trade.getTradeId(), trade.getVersion());
+        // NOTE: Known limitation: writes span SQL, NoSQL and state-update Kafka publish.
+        // This is not a single atomic transaction across systems, so partial-success scenarios are possible.
+        // Future enhancement: outbox/event-driven reconciliation to improve cross-store consistency guarantees.
 
         try {
             TradeEntity tradeEntity = tradeMapper.domainToSQLEntity(trade);

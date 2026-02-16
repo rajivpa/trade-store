@@ -5,7 +5,7 @@ import com.dws.tradestore.processor.domain.model.TradeState;
 import com.dws.tradestore.processor.domain.model.ValidationResult;
 import com.dws.tradestore.processor.event.inbound.TradeReceivedEvent;
 import com.dws.tradestore.processor.mapper.TradeMapper;
-import com.dws.tradestore.processor.messaging.publisher.DLQPublisher;
+import com.dws.tradestore.processor.messaging.publisher.DlqPublisher;
 import com.dws.tradestore.processor.messaging.publisher.TradeRejectedEventPublisher;
 import com.dws.tradestore.processor.persistence.entity.TradeEntity;
 import com.dws.tradestore.processor.persistence.entity.TradeAuditEntity;
@@ -33,7 +33,7 @@ public class TradeProcessingService {
     private TradeRejectedEventPublisher rejectedEventPublisher;
 
     @Autowired
-    private DLQPublisher dlqPublisher;
+    private DlqPublisher dlqPublisher;
 
     @Autowired
     private TradeMapper tradeMapper;
@@ -80,7 +80,7 @@ public class TradeProcessingService {
         } catch (Exception e) {
             log.error("Error processing Trade Received Event: tradeId={}, version={}", tradeRcvdEvnt.getTradeId(),
                     tradeRcvdEvnt.getVersion(),e);
-            handleError(tradeRcvdEvnt);
+            handleError(tradeRcvdEvnt, e);
             throw e;
         }
     }
@@ -92,9 +92,9 @@ public class TradeProcessingService {
         rejectedEventPublisher.publishRejectedEvent(trade, validationResult, currentState);
     }
 
-    private void handleError(TradeReceivedEvent event){
+    private void handleError(TradeReceivedEvent event, Throwable cause){
         try{
-            dlqPublisher.publishToDeadLetterQueue(event);
+            dlqPublisher.publishToDeadLetterQueue(event, cause);
             log.info("Trade id {} published to DLQ ",event.getTradeId());
         } catch(Exception e){
             log.error("Error publishing to DLQ topic",e);

@@ -29,3 +29,6 @@ trade:
       base-path: /api/v1/trades
     validation:
       maturity-date-format: yyyy-MM-dd
+
+server:
+  port: 8081

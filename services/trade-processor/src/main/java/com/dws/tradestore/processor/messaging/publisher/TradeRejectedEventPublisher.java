@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
 @Slf4j
 @Service
@@ -24,13 +25,17 @@ public class TradeRejectedEventPublisher {
     @Autowired
     private KafkaTemplate<String, TradeRejectedEvent> kafkaTemplate;
 
+    @Value("${app.kafka.producer.publish-timeout-ms:5000}")
+    private long publishTimeoutMs;
+
     public void publishRejectedEvent(Trade trade,
                                      ValidationResult validationResult,
                                      Optional<TradeState> currentState){
         log.info("Preparing to publish the trade reject event for Trade Id : {} and version {}", trade.getTradeId(),trade.getVersion());
         try{
             TradeRejectedEvent rejectedEvent = buildRejectedTradeEvent(trade, validationResult, currentState);
-            kafkaTemplate.send(processingRejectsTopic, rejectedEvent.getTradeId(), rejectedEvent);
+            kafkaTemplate.send(processingRejectsTopic, rejectedEvent.getTradeId(), rejectedEvent)
+                    .get(publishTimeoutMs, TimeUnit.MILLISECONDS);
             log.info("Successfully published the trade reject event for Trade Id : {} and version {}", trade.getTradeId(),trade.getVersion());
         } catch(Exception e){
             log.error("Error while publishing the trade reject event for Trade Id : {} and version {}", trade.getTradeId(),trade.getVersion(), e);

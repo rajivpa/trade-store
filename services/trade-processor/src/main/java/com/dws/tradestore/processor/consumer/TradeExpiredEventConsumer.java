@@ -33,6 +33,7 @@ public class TradeExpiredEventConsumer {
 
         } catch (Exception e){
             log.error("Error processing expired event",e);
+            // TODO: Route failed expired events to DLQ and rethrow to enforce retry/error-handler flow.
         }
     }
 }

@@ -129,6 +129,9 @@ public class TradeExpirationService {
                 TradeExpiredEvent event = tradeMapper.tradeEntityToExpiredEvent(trade);
                 tradeExpiryPublisher.publishTradeExpiredEvent(event);
             }catch(Exception e){
+                // NOTE: Current design prioritizes throughput over strict SQL+Kafka consistency.
+                // If publish fails after SQL expiry update, some expiry events may be missed.
+                // Future improvement options: end-of-day reconciliation or outbox pattern.
                 log.error("Error publishing the trade expiry event for trade Id {}", trade.getTradeId());
             }
         }

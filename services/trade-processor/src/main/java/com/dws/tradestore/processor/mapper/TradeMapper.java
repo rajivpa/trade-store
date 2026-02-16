@@ -49,6 +49,8 @@ public class TradeMapper {
     public TradeAuditEntity domainToNoSqlAuditEntity(
             Trade trade)
          {
+        // NOTE: UUID eventId makes each write attempt unique; retries can create duplicate logical audit entries.
+        // Future enhancement: deterministic idempotency key (tradeId+version+eventType) for deduplication.
         return TradeAuditEntity.builder()
                 .tradeId(trade.getTradeId())
                 .eventTimestamp(LocalDateTime.now())
@@ -86,6 +88,8 @@ public class TradeMapper {
     }
 
     public TradeAuditEntity expiryEventToAuditEntity(TradeExpiredEvent tradeExpiredEvent){
+        // NOTE: UUID eventId makes each write attempt unique; retries can create duplicate logical audit entries.
+        // Future enhancement: deterministic idempotency key (tradeId+version+eventType) for deduplication.
         return TradeAuditEntity.builder()
                 .tradeId(tradeExpiredEvent.getTradeId())
                 .eventTimestamp(LocalDateTime.now())

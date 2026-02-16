@@ -14,6 +14,7 @@ import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 
 @Slf4j
 @Service
@@ -27,6 +28,9 @@ public class TradeStateStoreService {
 
     @Value("${app.kafka.topics.tradeStateUpdates}")
     private String tradeStateUpdatesTopic;
+
+    @Value("${app.kafka.producer.publish-timeout-ms:5000}")
+    private long publishTimeoutMs;
 
     /**
      * Fetch latest known trade state for a tradeId from the state store.
@@ -61,6 +65,9 @@ public class TradeStateStoreService {
             return Optional.empty();
 
         } catch(Exception e){
+            // NOTE: Known limitation: if state store is unavailable, we currently default to Optional.empty().
+            // This may allow stale-version decisions in edge cases. Future enhancement: SQL fallback lookup for
+            // current version/status, at the cost of additional DB read latency and reduced throughput.
             log.error("Error retrieving trade state for tradeId: {}",tradeId);
             return Optional.empty();
         }
@@ -68,7 +75,8 @@ public class TradeStateStoreService {
 
     public void publishUpdateEventForTradeStateStore(TradeState tradeState){
         try{
-            kafkaTemplate.send(tradeStateUpdatesTopic, tradeState.getTradeId(), tradeState);
+            kafkaTemplate.send(tradeStateUpdatesTopic, tradeState.getTradeId(), tradeState)
+                    .get(publishTimeoutMs, TimeUnit.MILLISECONDS);
             log.info("Trade state update event published for tradeId: {}, version: {} ", tradeState.getTradeId(),tradeState.getLastProcessedVersion());
         } catch(Exception e){
             log.error("Error updating trade state for tradeId: {}", tradeState.getTradeId(),e);
