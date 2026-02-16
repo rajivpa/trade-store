@@ -1,0 +1,11 @@
+@startuml
+TradeIngestionController-> RestApiTradeAdapter: processTradeRequest
+RestApiTradeAdapter -> RestApiTradeAdapter: validateTrade
+RestApiTradeAdapter -> RestApiTradeAdapter: normalizeTrade
+RestApiTradeAdapter -> TradeReceivedEventPublisher: publishTradeReceivedEvent
+TradeReceivedEventPublisher -> TradeReceivedEventPublisher : publishToTradesReceivedTopic
+TradeReceivedEventPublisher -> Kafka : send (sync)
+Kafka --> TradeReceivedEventPublisher
+TradeReceivedEventPublisher --> RestApiTradeAdapter 
+RestApiTradeAdapter --> TradeIngestionController
+@enduml

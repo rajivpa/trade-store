@@ -1,0 +1,24 @@
+@startuml
+Kafka -> TradeReceivedEventConsumer: onTradeReceivedEvent
+TradeReceivedEventConsumer-> TradeProcessingService: processTradeEvent
+TradeProcessingService->TradeStateStore: getTradeState
+TradeStateStore --> TradeProcessingService
+TradeProcessingService -> TradeValidationService: performBusinessValidations (chain of resp)
+TradeValidationService -> TradeValidationService: MandatoryFieldsValidation
+TradeValidationService -> TradeValidationService: VersionValidation
+TradeValidationService -> TradeValidationService: MaturityDateValidation
+TradeValidationService -> TradeValidationService: ExpiryValidation
+TradeValidationService --> TradeProcessingService 
+TradeProcessingService -> TradeWriteService: acceptTrade
+TradeWriteService -> TradeEntityRepository: updateSqlStore
+TradeEntityRepository --> TradeWriteService 
+TradeWriteService -> TradeAuditRepository: updateNoSqlStore
+TradeAuditRepository --> TradeWriteService 
+TradeWriteService -> TradeStateStoreService: publishUpdateEventForTradeStateStore
+TradeStateStoreService -> kafka: send sync(trade-state-updates) 
+kafka --> TradeStateStoreService
+TradeStateStoreService --> TradeWriteService
+TradeWriteService --> TradeProcessingService
+TradeProcessingService --> TradeReceivedEventConsumer
+TradeReceivedEventConsumer --> Kafka
+@enduml
