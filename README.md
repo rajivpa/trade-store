@@ -9,7 +9,7 @@ This repository contains independently deployable services for the trade-store p
 ## Design
 - [System Design](https://github.com/rajivpa/trade-store/blob/main/system-design.png)
 - [Ingestion Sequence diagram](https://github.com/rajivpa/trade-store/blob/main/trade-ingestion-sequence-diagram.png)
-- [Processign Squence diagram](https://github.com/rajivpa/trade-store/blob/main/trade-processing-sequence-diagram.png)
+- [Processing Squence diagram](https://github.com/rajivpa/trade-store/blob/main/trade-processing-sequence-diagram.png)
 
 ## Build and Test
 
