@@ -5,7 +5,7 @@ This repository contains independently deployable services for the trade-store p
 ## Repository Layout
 
 - `services/trade-processor`: current trade consumer/processor service
-- `services/trade-ingestor`: placeholder for ingestor service (to be added)
+- `services/trade-ingestor`:  trade ingestion service 
 
 ## Build and Test
 
