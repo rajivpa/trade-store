@@ -66,9 +66,9 @@ app:
       trades-processor: trades-processor-group
     topics:
       ticks: ticks
-      trades: trades
+      trades: trades-received
       tradeExpired: trade-expired
-      tradesDlq: trades-dlq
+      tradesDlq: trades-processor-dlq
       processingRejects: processing-rejects
       tradeStateUpdates: trade-state-updates
 
