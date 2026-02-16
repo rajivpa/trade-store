@@ -15,6 +15,12 @@ public class TradeExpiredEventConsumer {
     @Autowired
     private TradeExpirationService tradeExpirationService;
 
+    /**
+     * This method receives trade expired events (which are sent after marking trade expired in sql store)
+     * from kafka and triggers updates to trade audit store & trade state store.
+     * @param tradeExpiredEvent
+     * @param ack
+     */
     @KafkaListener(topics = "${app.kafka.topics.tradeExpired}", groupId = "${app.kafka.consumer-groups.trade-expiration}")
     public void onTradeExpired(TradeExpiredEvent tradeExpiredEvent, Acknowledgment ack){
         try{

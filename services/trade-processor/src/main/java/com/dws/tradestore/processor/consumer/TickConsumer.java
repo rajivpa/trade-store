@@ -14,6 +14,13 @@ public class TickConsumer {
     @Autowired
     private TradeExpirationService tradeExpirationService;
 
+    /**
+     * This method receives tick events from Kafka and uses them to trigger
+     * maturity date check on the Trade SQL store, any trades having maturity date
+     * less than asOfDate provided by tick get marked as EXPIRED
+     * @param tickEvent
+     * @param ack
+     */
     @KafkaListener(topics = "${app.kafka.topics.ticks}", groupId = "${app.kafka.consumer-groups.trade-expiration}")
     public void onTickReceived(TickEvent tickEvent, Acknowledgment ack){
 
