@@ -3,9 +3,14 @@
 This repository contains independently deployable services for the trade-store platform.
 
 ## Repository Layout
+- `services/trade-ingestor`: Ingests trades coming over various transmission channels
+- `services/trade-processor`: Processes the ingests trades as per business rules.
 
-- `services/trade-processor`: current trade consumer/processor service
-- `services/trade-ingestor`: trade ingestion service
+## System Design
+https://github.com/rajivpa/trade-store/blob/main/system-design.png
+
+Ingestion Sequence diagram - https://github.com/rajivpa/trade-store/blob/main/trade-ingestion-sequence-diagram.png
+Processign Squence diagram - https://github.com/rajivpa/trade-store/blob/main/trade-processing-sequence-diagram.png
 
 ## Build and Test
 
