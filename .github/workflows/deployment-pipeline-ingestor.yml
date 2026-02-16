@@ -21,8 +21,8 @@ permissions:
   contents: read
 
 jobs:
-  regression-tests:
-    name: Regression Tests
+  build:
+    name: Build
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -36,11 +36,55 @@ jobs:
           cache: maven
           cache-dependency-path: services/trade-ingestor/pom.xml
 
-      - name: Run tests
+      - name: Build
         working-directory: services/trade-ingestor
         run: |
           chmod +x mvnw
-          ./mvnw -B -ntp clean test
+          ./mvnw -B -ntp clean compile -DskipTests
+
+  unit-tests:
+    name: Unit Tests
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+          cache: maven
+          cache-dependency-path: services/trade-ingestor/pom.xml
+
+      - name: Run unit tests
+        working-directory: services/trade-ingestor
+        run: |
+          chmod +x mvnw
+          ./mvnw -B -ntp test -Dtest='*Test'
+
+  regression-tests:
+    name: Regression Tests
+    runs-on: ubuntu-latest
+    needs: unit-tests
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+          cache: maven
+          cache-dependency-path: services/trade-ingestor/pom.xml
+
+      - name: Run regression tests
+        working-directory: services/trade-ingestor
+        run: |
+          chmod +x mvnw
+          ./mvnw -B -ntp test
 
   oss-vulnerability-scan:
     name: OSS Vulnerability Scan
@@ -92,6 +136,8 @@ jobs:
     name: Deploy
     runs-on: ubuntu-latest
     needs:
+      - build
+      - unit-tests
       - regression-tests
       - oss-vulnerability-scan
     if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
